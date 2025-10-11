@@ -4,6 +4,8 @@
 
 # Funkcijski zahtjevi
 
+# Nefunkcijski zahtjevi
+
 # Tehnologije
 
 # Kontribucije
