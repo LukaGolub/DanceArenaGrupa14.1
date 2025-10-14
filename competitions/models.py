@@ -1,6 +1,6 @@
 from django.db import models
 from multiselectfield import MultiSelectField
-from users.models import Organizer
+from users.models import Organizer, ClubManager
 
 AGE_CHOICES = [
         ('DJECA', 'Djeca'),
@@ -61,6 +61,12 @@ class Appearance(models.Model):
         Competition,
         on_delete=models.CASCADE,
         related_name='appearances'
+    )
+    club_manager = models.ForeignKey(
+        ClubManager,
+        on_delete=models.CASCADE,
+        related_name='appearances',
+        null=True
     )
     choreography = models.CharField(max_length=50)
     length = models.TimeField()
