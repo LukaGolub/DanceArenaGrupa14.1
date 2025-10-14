@@ -1,50 +1,83 @@
 from django.db import models
+from multiselectfield import MultiSelectField
+from users.models import Organizer
 
-class AgeCategory(models.Model):
-    age_categories = [
-        ('DJECA', 'djeca'),
-        ('JUNIORI', 'juniori'),
-        ('SENIORI', 'seniori')
-    ]
-    age_category = models.CharField(
-        max_length=20,
-        choices=age_categories,
-        unique=True
-    )
+AGE_CHOICES = [
+        ('DJECA', 'Djeca'),
+        ('JUNIORI', 'Juniori'),
+        ('SENIORI', 'Seniori'),
+]
 
-class StyleCategory(models.Model):
-    style_categories = [
-        ('BALET', 'balet'),
-        ('HIP HOP', 'hip hop'),
-        ('JAZZ', 'jazz'),
-        ('STEP', 'step'),
-        ('BREAK', 'break')
-    ]
-    style_category = models.CharField(
-        max_length=20,
-        choices=style_categories,
-        unique=True
-    )
+STYLE_CHOICES = [
+    ('BALET', 'Balet'),
+    ('HIPHOP', 'Hip Hop'),
+    ('JAZZ', 'Jazz'),
+    ('STEP', 'Step'),
+    ('BREAK', 'Break'),
+]
 
-class GroupSizeCategory(models.Model):
-    group_size_categories = [
-        ('SOLO', 'solo'),
-        ('DUO', 'duo'),
-        ('MALA GRUPA', 'mala grupa'),
-        ('FORMACIJA', 'formacija')
-    ]
-    group_size_category = models.CharField(
-        max_length=20,
-        choices=group_size_categories,
-        unique=True
-    )
+GROUP_SIZE_CHOICES = [
+    ('SOLO', 'Solo'),
+    ('DUO', 'Duo'),
+    ('MALA_GRUPA', 'Mala grupa'),
+    ('FORMACIJA', 'Formacija'),
+]
 
 class Competition(models.Model):
     date = models.DateField()
     location = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
-    age_categories = models.ManyToManyField(AgeCategory)
-    style_categories = models.ManyToManyField(StyleCategory)
-    group_size_categories = models.ManyToManyField(GroupSizeCategory)
+    organizer = models.ForeignKey(
+        Organizer,
+        on_delete=models.CASCADE,
+        related_name='competitions',
+        null=True
+    )
+    age_categories = MultiSelectField(
+        choices=AGE_CHOICES,
+        max_choices=3,
+        max_length=50,
+        default=['DJECA']
+    )
+    style_categories = MultiSelectField(
+        choices=STYLE_CHOICES,
+        max_choices=5,
+        max_length=50,
+        default=['BALET']
+    )
+    group_size_categories = MultiSelectField(
+        choices=GROUP_SIZE_CHOICES,
+        max_choices=4,
+        max_length=50,
+        default=['SOLO']
+    )
+
+    def __str__(self):
+        return f"{self.location} ({self.date})"
 
 
+class Appearance(models.Model):
+    competition = models.ForeignKey(
+        Competition,
+        on_delete=models.CASCADE,
+        related_name='appearances'
+    )
+    choreography = models.CharField(max_length=50)
+    length = models.TimeField()
+    choreograph = models.CharField(max_length=50)
+    music = models.FileField()
+    age_category = models.CharField(
+        max_length=50,
+        choices=AGE_CHOICES,
+        default='DJECA'
+    )
+    style_category = models.CharField(
+        max_length=50,
+        choices=STYLE_CHOICES,
+        default='BALET'
+    )
+    group_size_category = models.CharField(
+        max_length=50,
+        choices=GROUP_SIZE_CHOICES,
+        default='SOLO'
+    )
