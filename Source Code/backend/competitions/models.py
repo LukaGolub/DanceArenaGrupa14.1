@@ -1,11 +1,11 @@
 from django.db import models
 from multiselectfield import MultiSelectField
-from users.models import Organizer, ClubManager
+from django.conf import settings
 
 AGE_CHOICES = [
-        ('DJECA', 'Djeca'),
-        ('JUNIORI', 'Juniori'),
-        ('SENIORI', 'Seniori'),
+    ('DJECA', 'Djeca'),
+    ('JUNIORI', 'Juniori'),
+    ('SENIORI', 'Seniori'),
 ]
 
 STYLE_CHOICES = [
@@ -28,7 +28,8 @@ class Competition(models.Model):
     location = models.CharField(max_length=255)
     description = models.CharField(max_length=255)
     organizer = models.ForeignKey(
-        Organizer,
+        settings.AUTH_USER_MODEL,
+        limit_choices_to={'role': 'ORGANIZER'},
         on_delete=models.CASCADE,
         related_name='competitions',
         null=True
@@ -63,7 +64,8 @@ class Appearance(models.Model):
         related_name='appearances'
     )
     club_manager = models.ForeignKey(
-        ClubManager,
+        settings.AUTH_USER_MODEL,
+        limit_choices_to={'role': 'CLUB_MANAGER'},
         on_delete=models.CASCADE,
         related_name='appearances',
         null=True
@@ -75,7 +77,7 @@ class Appearance(models.Model):
     age_category = models.CharField(
         max_length=50,
         choices=AGE_CHOICES,
-        default='DJECA'
+        default='DJECA',
     )
     style_category = models.CharField(
         max_length=50,
