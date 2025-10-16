@@ -11,7 +11,7 @@ class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = "ADMIN", "Admin"
         ORGANIZER = "ORGANIZER", "Organizer"
-        CLUB_MANAGER = "CLUB_MANAGER", "Club Manager"
+        CLUB_MANAGER = "CLUB_MANAGER", "Club_Manager"
         JUDGE = "JUDGE", "Judge"
 
     role = models.CharField(max_length=50, choices=Role.choices, default=Role.ADMIN)
