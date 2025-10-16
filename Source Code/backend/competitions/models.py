@@ -77,7 +77,7 @@ class Appearance(models.Model):
     age_category = models.CharField(
         max_length=50,
         choices=AGE_CHOICES,
-        default='DJECA'
+        default='DJECA',
     )
     style_category = models.CharField(
         max_length=50,

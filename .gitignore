@@ -47,8 +47,8 @@ db.sqlite3-journal
 /local_settings.py # Or any file holding sensitive local configuration
 
 # Migrations (Optional: Uncomment to ignore all migration files except __init__.py)
-# **/migrations/
-# !**/migrations/__init__.py
+**/migrations/
+!**/migrations/__init__.py
 
 
 # --------------------
