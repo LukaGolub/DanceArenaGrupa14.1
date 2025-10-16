@@ -2,7 +2,7 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
-from users.models import User
+from .decorators import role_required
 
 def login_user(req):
     if req.method == "POST":
@@ -21,12 +21,15 @@ def login_user(req):
         else:
             return redirect('/users/' + role.lower()) 
 
+@role_required(['ORGANIZER'])
 def organizers(req):
     return HttpResponse('Organizer.html')
 
+@role_required(['CLUB_MANAGER'])
 def club_managers(req):
     return HttpResponse('Club manager.html')
 
+@role_required(['JUDGE'])
 def judges(req):
     return HttpResponse('Judge.html')
 
