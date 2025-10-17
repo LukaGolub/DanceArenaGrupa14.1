@@ -33,12 +33,6 @@ STATUS_CHOICES = [
 ]
 
 
-class Meta:
-    constraints = [
-        models.UniqueConstraint(fields=['judge', 'appearance'], name='unique_judge_appearance')
-    ]
-
-
 class Competition(models.Model):
     date = models.DateField()
     location = models.CharField(max_length=255)
@@ -71,13 +65,39 @@ class Competition(models.Model):
     status = models.CharField(max_length=10, default='draft')
 
     def __str__(self):
-        return f"""ID:{self.id}-ORGANIZER:{self.organizer}-LOCATION:{self.location}-
-                DATE:{self.date}-STATUS:{self.status}-  
+        return f"""ID:{self.id}-ORGANIZER:{self.organizer}-  
                 AGE CATEGORIES:{self.age_categories}-
                 STYLE CATEGORIES:{self.style_categories}-
                 GROUP SIZE CATEGORIES:{self.group_size_categories}
-                ===========================================================
+                ====================
                 """
+
+
+class Competition_Judge(models.Model):
+    competition = models.ForeignKey(
+        Competition,
+        on_delete=models.CASCADE,
+        related_name='competition_judges'
+    )
+    judge = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        limit_choices_to={'role': 'JUDGE'},
+        on_delete=models.CASCADE,
+        related_name='assigned_competitions'
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['judge', 'competition'], name='unique_judge_competition')
+        ]
+
+    def competition_id(self):
+        return self.competition.id
+    competition_id.short_description = 'Competition ID'
+
+    def __str__(self):
+        return f"""{self.judge.username}->{self.competition}
+                ===================="""
 
 
 class Appearance(models.Model):
@@ -119,12 +139,11 @@ class Appearance(models.Model):
 
     def __str__(self):
         return f"""ID:{self.id}-COMPETITION ID:{self.competition.id}-
-                CLUB MANAGER:{self.club_manager}-CHOREOGRAPHY:{self.choreography}-
-                CHOREOGRAPH:{self.choreograph}-
+                CLUB MANAGER:{self.club_manager}-
                 AGE CATEGORY:{self.age_category}-
                 STYLE CATEGORY:{self.style_category}-
                 GROUP SIZE CATEGORy:{self.group_size_category}
-                ===========================================================
+                ====================
                 """
 
 
@@ -144,8 +163,21 @@ class Grade(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(30)]
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['judge', 'appearance'], name='unique_judge_appearance')
+        ]
+
     def appearance_id(self):
         return self.appearance.id
     appearance_id.short_description = 'Appearance ID'
+
+    def competition_id(self):
+        return self.appearance.competition.id
+    competition_id.short_description = 'Competition ID'
+
+    def __str__(self):
+        return f"""{self.judge.username}->{self.appearance.id}:{self.grade}
+                ===================="""
 
 

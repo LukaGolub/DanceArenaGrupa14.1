@@ -13,7 +13,7 @@ def login_user(req):
         user = authenticate(req, username=username, password=password)
 
     else:
-        return HttpResponse('Need to login.html')
+        return HttpResponse("Login.html")
     
     if user is not None:
         role = user.get_role_display()

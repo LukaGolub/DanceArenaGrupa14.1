@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, HttpResponse
-from .models import Competition, Appearance, Grade
+from .models import Competition, Appearance, Grade, Competition_Judge
+from users.models import User
 from users.decorators import role_required
 from django.views.decorators.csrf import csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!
 
@@ -12,18 +13,18 @@ def competition_list(request):
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
 @role_required(['ORGANIZER'])
 def competition_create(request):
-    print(request.POST)
     if request.method == 'POST':
-        competition = Competition()
-        competition.organizer = request.user
-        competition.date = request.POST.get('date')
-        competition.location = request.POST.get('location')
-        competition.description = request.POST.get('description')  
-        competition.status = 'draft'       
+        competition = Competition(
+            organizer=request.user,
+            date=request.POST.get('date'),
+            location = request.POST.get('location'),
+            description=request.POST.get('description'),
+            status='draft' 
+        )      
         competition.save()
-        return redirect('competition_detail', id=competition.id)
+        return HttpResponse(competition)
     
-    return HttpResponse('Stvori natjecanje')
+    return HttpResponse("Stvori natjecanje.html")
 
 
 def competition_detail(request, id):
@@ -38,7 +39,7 @@ def competition_edit(request, id):
     competition = get_object_or_404(Competition, id=id)
 
     if competition.organizer != request.user:
-        return HttpResponseForbidden("You cannot edit this competition.")
+        return HttpResponseForbidden("Pristup zabranjen.")
 
     if request.method == 'POST':
         for field in Competition._meta.fields:
@@ -50,9 +51,9 @@ def competition_edit(request, id):
 
         competition.status = 'draft'       
         competition.save()
-        return redirect('competition_detail', id=competition.id)
+        return HttpResponse(competition)
 
-    return HttpResponse('edit')
+    return HttpResponse("Prepravi.html")
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
@@ -61,14 +62,42 @@ def competition_publish(request, id):
     competition = get_object_or_404(Competition, id=id)
 
     if competition.organizer != request.user:
-        return HttpResponseForbidden("You cannot publish this competition.")
+        return HttpResponseForbidden("Pristup zabranjen.")
 
     if request.method == 'POST':
         competition.status = 'published'
         competition.save()
-        return redirect('competition_detail', id=competition.id)
+        return HttpResponse(competition)
 
-    return HttpResponse(competition)
+    return HttpResponse("Objavi.html")
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+@role_required(['ORGANIZER'])
+def competition_invite_judge(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    if competition.organizer != request.user:
+        return HttpResponseForbidden("Pristup zabranjen.")
+    
+    if competition.status == 'active':
+        return HttpResponseForbidden("Natjecanje je aktivno.")
+
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if not User.objects.filter(email=email).exists():
+            return HttpResponse("Mail.html")
+        user = User.objects.get(email=email)
+        if user.role != 'JUDGE':
+            return HttpResponseForbidden("Korisnik nije sudac.")
+        competition_judge = Competition_Judge(
+            competition=competition,
+            judge=user
+        )
+        competition_judge.save()
+        return HttpResponse(competition_judge)
+
+    return HttpResponse("Pozovi suca.html")
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
@@ -77,14 +106,34 @@ def competition_activate(request, id):
     competition = get_object_or_404(Competition, id=id)
 
     if competition.organizer != request.user:
-        return HttpResponseForbidden("You cannot activate this competition.")
+        return HttpResponseForbidden("Pristup zabranjen.")
 
     if request.method == 'POST':
+        if not Competition_Judge.objects.filter(competition=competition).exists():
+            return HttpResponseForbidden("Nema sudaca.")
+        if Competition_Judge.objects.filter(competition=competition).count() / 2 == 1:
+            return HttpResponseForbidden("Broj sudaca je paran.")
         competition.status = 'active'
         competition.save()
-        return redirect('competition_detail', id=competition.id)
+        return HttpResponse(competition)
 
-    return HttpResponse(competition)
+    return HttpResponse("Aktiviraj.html")
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+@role_required(['ORGANIZER'])
+def competition_deactivate(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    if competition.organizer != request.user:
+        return HttpResponseForbidden("Pristup zabranjen.")
+
+    if request.method == 'POST':
+        competition.status = 'published'
+        competition.save()
+        return HttpResponse(competition)
+
+    return HttpResponse("Ugasi.html")
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
@@ -95,10 +144,10 @@ def competition_grade(request, competition_id, appearance_id):
 
     if request.method == 'POST':
         if competition.status != 'active':
-            return HttpResponseForbidden("You cannot judge an inactive competition.")
+            return HttpResponseForbidden("Natjecanje nije aktivno.")
         
-        if False:
-            return HttpResponseForbidden("You cannot grade this appearance.")
+        if not Competition_Judge.objects.filter(competition=competition, judge=request.user).exists():
+            return HttpResponseForbidden("Pristup zabranjen.")
         
         appearance_grade = request.POST.get('grade')
         grade = Grade(
@@ -110,4 +159,4 @@ def competition_grade(request, competition_id, appearance_id):
 
         return HttpResponse(grade)
     
-    return HttpResponse(str(competition) + '\n' + str(appearance))
+    return HttpResponse("Ocijeni.html")

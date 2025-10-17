@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Competition, Appearance, Grade
+from .models import Competition, Appearance, Grade, Competition_Judge
 
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
@@ -27,7 +27,7 @@ class CompetitionAdmin(admin.ModelAdmin):
 @admin.register(Appearance)
 class AppearanceAdmin(admin.ModelAdmin):
     list_display = (
-        'competition_id', 'club_manager', 'choreography', 'choreograph',
+        'id', 'competition_id', 'club_manager', 'choreography', 'choreograph',
         'age_category', 'style_category', 'group_size_category'
     )
     search_fields = ('choreography', 'choreograph', 'competition__location')
@@ -37,5 +37,12 @@ class AppearanceAdmin(admin.ModelAdmin):
 @admin.register(Grade)
 class GradeAdmin(admin.ModelAdmin):
     list_display = (
-        'judge', 'appearance_id', 'grade'
+        'competition_id', 'judge', 'appearance_id', 'grade'
+    )
+
+
+@admin.register(Competition_Judge)
+class Competition_JudgeAdmin(admin.ModelAdmin):
+    list_display = (
+        'judge', 'competition_id'
     )
