@@ -3,7 +3,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .decorators import role_required
+from django.views.decorators.csrf import csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!
 
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
 def login_user(req):
     if req.method == "POST":
         username = req.POST['username']

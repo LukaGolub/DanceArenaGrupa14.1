@@ -23,6 +23,14 @@ GROUP_SIZE_CHOICES = [
     ('FORMACIJA', 'Formacija'),
 ]
 
+STATUS_CHOICES = [
+    ('DRAFT', 'Draft'),
+    ('PUBLISHED', 'Published'),
+    ('CLOSED_APPLICATIONS', 'Closed_applications'),
+    ('ACTIVE', 'Active'),
+    ('COMPLETED', 'Completed')
+]
+
 class Competition(models.Model):
     date = models.DateField()
     location = models.CharField(max_length=255)
@@ -52,9 +60,11 @@ class Competition(models.Model):
         max_length=50,
         default=['SOLO']
     )
+    status = models.CharField(max_length=10, default='draft')
 
     def __str__(self):
-        return f"{self.location} ({self.date})"
+        return f"ID:{self.id} LOC:{self.location} STATUS:{self.status}\
+                 DATE:({self.date}) ORG:{self.organizer}\n"
 
 
 class Appearance(models.Model):
