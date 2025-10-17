@@ -1,6 +1,7 @@
 from django.db import models
 from multiselectfield import MultiSelectField
 from django.conf import settings
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 AGE_CHOICES = [
     ('DJECA', 'Djeca'),
@@ -30,6 +31,13 @@ STATUS_CHOICES = [
     ('ACTIVE', 'Active'),
     ('COMPLETED', 'Completed')
 ]
+
+
+class Meta:
+    constraints = [
+        models.UniqueConstraint(fields=['judge', 'appearance'], name='unique_judge_appearance')
+    ]
+
 
 class Competition(models.Model):
     date = models.DateField()
@@ -63,8 +71,13 @@ class Competition(models.Model):
     status = models.CharField(max_length=10, default='draft')
 
     def __str__(self):
-        return f"ID:{self.id} LOC:{self.location} STATUS:{self.status}\
-                 DATE:({self.date}) ORG:{self.organizer}\n"
+        return f"""ID:{self.id}-ORGANIZER:{self.organizer}-LOCATION:{self.location}-
+                DATE:{self.date}-STATUS:{self.status}-  
+                AGE CATEGORIES:{self.age_categories}-
+                STYLE CATEGORIES:{self.style_categories}-
+                GROUP SIZE CATEGORIES:{self.group_size_categories}
+                ===========================================================
+                """
 
 
 class Appearance(models.Model):
@@ -99,3 +112,40 @@ class Appearance(models.Model):
         choices=GROUP_SIZE_CHOICES,
         default='SOLO'
     )
+
+    def competition_id(self):
+        return self.competition.id
+    competition_id.short_description = 'Competition ID'
+
+    def __str__(self):
+        return f"""ID:{self.id}-COMPETITION ID:{self.competition.id}-
+                CLUB MANAGER:{self.club_manager}-CHOREOGRAPHY:{self.choreography}-
+                CHOREOGRAPH:{self.choreograph}-
+                AGE CATEGORY:{self.age_category}-
+                STYLE CATEGORY:{self.style_category}-
+                GROUP SIZE CATEGORy:{self.group_size_category}
+                ===========================================================
+                """
+
+
+class Grade(models.Model):
+    judge = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        limit_choices_to={'role': 'JUDGE'},
+        on_delete=models.CASCADE,
+        related_name='grades'
+    )
+    appearance = models.ForeignKey(
+        Appearance,
+        on_delete=models.CASCADE,
+        related_name='grades'
+    )
+    grade = models.IntegerField(
+        validators=[MinValueValidator(0), MaxValueValidator(30)]
+    )
+
+    def appearance_id(self):
+        return self.appearance.id
+    appearance_id.short_description = 'Appearance ID'
+
+
