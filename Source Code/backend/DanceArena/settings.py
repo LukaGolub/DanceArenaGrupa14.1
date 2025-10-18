@@ -66,8 +66,8 @@ AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2',
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = 'OATH_ID'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'OATH_SECRET'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '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'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
@@ -160,8 +160,8 @@ AUTH_USER_MODEL = 'users.User'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': 'OATH_ID',
-            'secret': 'OATH_SECRET',
+            'client_id': '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com ',
+            'secret': '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',
             'key': '',
         }
     }
