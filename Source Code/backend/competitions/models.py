@@ -41,8 +41,7 @@ class Competition(models.Model):
         settings.AUTH_USER_MODEL,
         limit_choices_to={'role': 'ORGANIZER'},
         on_delete=models.CASCADE,
-        related_name='competitions',
-        null=True
+        related_name='competitions'
     )
     age_categories = MultiSelectField(
         choices=AGE_CHOICES,
@@ -62,7 +61,7 @@ class Competition(models.Model):
         max_length=50,
         default=['SOLO']
     )
-    status = models.CharField(max_length=10, default='draft')
+    status = models.CharField(choices=STATUS_CHOICES, max_length=20, default='DRAFT')
 
     def __str__(self):
         return f"""ID:{self.id}-ORGANIZER:{self.organizer}-  
@@ -142,7 +141,7 @@ class Appearance(models.Model):
                 CLUB MANAGER:{self.club_manager}-
                 AGE CATEGORY:{self.age_category}-
                 STYLE CATEGORY:{self.style_category}-
-                GROUP SIZE CATEGORy:{self.group_size_category}
+                GROUP SIZE CATEGORY:{self.group_size_category}
                 ====================
                 """
 
