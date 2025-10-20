@@ -4,7 +4,7 @@ from .models import Competition, Appearance, Grade, Competition_Judge
 @admin.register(Competition)
 class CompetitionAdmin(admin.ModelAdmin):
     list_display = (
-        'date', 'location', 'organizer',
+        'id', 'date', 'location', 'organizer', 'status',
         'get_age_categories', 'get_style_categories', 'get_group_size_categories'
     )
     search_fields = ('date', 'location', 'description')

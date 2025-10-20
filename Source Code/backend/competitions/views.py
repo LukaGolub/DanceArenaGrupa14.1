@@ -160,3 +160,34 @@ def competition_grade(request, competition_id, appearance_id):
         return HttpResponse(grade)
     
     return HttpResponse("Ocijeni.html")
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+@role_required(['CLUB_MANAGER'])
+def competition_signup(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    if request.method == 'POST':
+        if competition.status != 'published':
+            return HttpResponseForbidden("Prijava nije moguća.")
+        
+        appearance = Appearance()
+        for field in Appearance._meta.fields:
+            attr = field.name  
+            if attr in ['id', 'club_manager', 'competition']:
+                continue
+            if request.POST.get(attr):
+                setattr(appearance, attr, request.POST.get(attr))
+            else:
+                return HttpResponseForbidden("Nepotpuna prijava.")
+
+        if appearance.age_category not in competition.age_categories\
+            or appearance.style_category not in competition.style_categories\
+            or appearance.group_size_category not in competition.group_size_categories:
+            return HttpResponseForbidden("Nepodrzana kategorija.")
+        appearance.club_manager = request.user
+        appearance.competition = competition
+        appearance.save()
+
+        return HttpResponse(appearance)
+    
+    return HttpResponse("Prijavi nastup.html")
