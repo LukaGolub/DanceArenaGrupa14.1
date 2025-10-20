@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponseForbidden, HttpResponse
-from .models import Competition, Appearance, Grade, Competition_Judge
-from users.models import User
+from .models import Competition, Appearance, Grade, Competition_Judge, Status_choices
+from .utils import generate_starting_list_pdf
+from users.models import User, Role
 from users.decorators import role_required
 from django.views.decorators.csrf import csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!
 
@@ -11,7 +12,7 @@ def competition_list(request):
     return HttpResponse(competitions)
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
 def competition_create(request):
     if request.method == 'POST':
         competition = Competition(
@@ -19,7 +20,7 @@ def competition_create(request):
             date=request.POST.get('date'),
             location = request.POST.get('location'),
             description=request.POST.get('description'),
-            status='draft' 
+            status=Status_choices.DRAFT 
         )      
         competition.save()
         return HttpResponse(competition)
@@ -34,7 +35,7 @@ def competition_detail(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
 def competition_edit(request, id):
     competition = get_object_or_404(Competition, id=id)
 
@@ -49,7 +50,7 @@ def competition_edit(request, id):
             if request.POST.get(attr):
                 setattr(competition, attr, request.POST.get(attr))
 
-        competition.status = 'draft'       
+        competition.status = Status_choices.DRAFT       
         competition.save()
         return HttpResponse(competition)
 
@@ -57,7 +58,7 @@ def competition_edit(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
 def competition_publish(request, id):
     competition = get_object_or_404(Competition, id=id)
 
@@ -65,7 +66,7 @@ def competition_publish(request, id):
         return HttpResponseForbidden("Pristup zabranjen.")
 
     if request.method == 'POST':
-        competition.status = 'published'
+        competition.status = Status_choices.PUBLISHED
         competition.save()
         return HttpResponse(competition)
 
@@ -73,15 +74,66 @@ def competition_publish(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
+def competition_close_applications(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    if competition.organizer != request.user:
+        return HttpResponseForbidden("Pristup zabranjen.")
+    
+    if competition.status != Status_choices.PUBLISHED:
+        return HttpResponseForbidden("Natjecanje nije objavljeno.")
+
+    if request.method == 'POST':
+        competition.status = Status_choices.CLOSED_APPLICATIONS
+        competition.save()
+        url = generate_starting_list_pdf(competition)
+        return HttpResponse(url)
+
+    return HttpResponse("Zatvori prijave.html")
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+def competition_starting_list(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    allowed_users = set()
+    allowed_users.add(competition.organizer.id)
+    admins = (
+        User.objects.filter(role=Role.ADMIN)
+        .values_list('id', flat=True)
+    )
+    allowed_users.update(admins)
+    club_managers = (
+        Appearance.objects.filter(competition=competition)
+        .values_list('club_manager', flat=True)
+    )
+    allowed_users.update(club_managers)
+    judges = (
+        Competition_Judge.objects.filter(competition=competition)
+        .values_list('judge', flat=True)
+    )
+    allowed_users.update(judges)
+
+    print(allowed_users)
+    print(request.user.id)
+
+    if request.user.id not in allowed_users:
+        return HttpResponseForbidden("Pristup zabranjen.")
+
+    return redirect(competition.starting_list_pdf.url)
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+@role_required(Role.ORGANIZER)
 def competition_invite_judge(request, id):
     competition = get_object_or_404(Competition, id=id)
 
     if competition.organizer != request.user:
         return HttpResponseForbidden("Pristup zabranjen.")
     
-    if competition.status == 'active':
-        return HttpResponseForbidden("Natjecanje je aktivno.")
+    if competition.status != Status_choices.PUBLISHED:
+        return HttpResponseForbidden("Natjecanje nije objavljeno.")
 
     if request.method == 'POST':
         email = request.POST.get('email')
@@ -101,7 +153,7 @@ def competition_invite_judge(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
 def competition_activate(request, id):
     competition = get_object_or_404(Competition, id=id)
 
@@ -121,7 +173,7 @@ def competition_activate(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['ORGANIZER'])
+@role_required(Role.ORGANIZER)
 def competition_deactivate(request, id):
     competition = get_object_or_404(Competition, id=id)
 
@@ -137,13 +189,13 @@ def competition_deactivate(request, id):
 
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['JUDGE'])
+@role_required(Role.JUDGE)
 def competition_grade(request, competition_id, appearance_id):
     competition = get_object_or_404(Competition, id=competition_id)
     appearance = get_object_or_404(Appearance, id=appearance_id)
 
     if request.method == 'POST':
-        if competition.status != 'active':
+        if competition.status != Status_choices.ACTIVE:
             return HttpResponseForbidden("Natjecanje nije aktivno.")
         
         if not Competition_Judge.objects.filter(competition=competition, judge=request.user).exists():
@@ -162,12 +214,12 @@ def competition_grade(request, competition_id, appearance_id):
     return HttpResponse("Ocijeni.html")
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
-@role_required(['CLUB_MANAGER'])
+@role_required(Role.CLUB_MANAGER)
 def competition_signup(request, id):
     competition = get_object_or_404(Competition, id=id)
 
     if request.method == 'POST':
-        if competition.status != 'published':
+        if competition.status != Status_choices.PUBLISHED:
             return HttpResponseForbidden("Prijava nije moguća.")
         
         appearance = Appearance()
