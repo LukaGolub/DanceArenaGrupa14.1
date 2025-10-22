@@ -9,10 +9,10 @@ phone_regex = RegexValidator(
 
 
 class Role(models.TextChoices):
-        ADMIN = "ADMIN", "Admin"
-        ORGANIZER = "ORGANIZER", "Organizer"
-        CLUB_MANAGER = "CLUB MANAGER", "Club Manager"
-        JUDGE = "JUDGE", "Judge"
+    ADMIN = "ADMIN", "Admin"
+    ORGANIZER = "ORGANIZER", "Organizer"
+    CLUB_MANAGER = "CLUB_MANAGER", "Club Manager"
+    JUDGE = "JUDGE", "Judge"
         
 
 class User(AbstractUser):
