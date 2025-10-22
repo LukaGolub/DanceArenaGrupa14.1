@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 
@@ -26,3 +27,14 @@ class User(AbstractUser):
         if not self.pk and not self.role:
             self.role = self.Role.ADMIN
         super().save(*args, **kwargs)
+
+
+class Organizer_Subscription(models.Model):
+    organizer = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        limit_choices_to={'role': 'ORGANIZER'},
+        on_delete=models.CASCADE,
+        related_name='subscription'
+    )
+    paid_subscription = models.BooleanField(default=False)
+    end_date = models.DateField(null=True, blank=True, default=None)
