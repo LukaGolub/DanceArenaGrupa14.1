@@ -21,14 +21,14 @@ class Style_choices(models.TextChoices):
 class Group_size_choices(models.TextChoices):
     SOLO = "SOLO", "Solo"
     DUO = "DUO", "Duo"
-    MALA_GRUPA = "MALA GRUPA", "Mala grupa"
+    MALA_GRUPA = "MALA_GRUPA", "Mala grupa"
     FORMACIJA = "FORMACIJA", "Formacija"
 
 
 class Status_choices(models.TextChoices):
     DRAFT = "DRAFT", "Draft"
     PUBLISHED = "PUBLISHED", "Published"
-    CLOSED_APPLICATIONS = "CLOSED APPLICATIONS", "Closed applications"
+    CLOSED_APPLICATIONS = "CLOSED_APPLICATIONS", "Closed applications"
     ACTIVE = "ACTIVE", "Active"
     COMPLETED = "COMPLETED", "Completed"
 
@@ -67,6 +67,7 @@ class Competition(models.Model):
         blank=True,
         null=True
     )
+    registration_fee = models.DecimalField(decimal_places=2, max_digits=6, default=0)
 
     def __str__(self):
         return f"""ID:{self.id}-ORGANIZER:{self.organizer}-  
@@ -94,10 +95,6 @@ class Competition_Judge(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['judge','competition'], name='unique_judge_competition')
         ]
-
-    def competition_id(self):
-        return self.competition.id
-    competition_id.short_description = 'Competition ID'
 
     def __str__(self):
         return f"""{self.judge.username}->{self.competition}
@@ -136,10 +133,7 @@ class Appearance(models.Model):
         choices=Group_size_choices,
         default=Group_size_choices.SOLO
     )
-
-    def competition_id(self):
-        return self.competition.id
-    competition_id.short_description = 'Competition ID'
+    paid_registration = models.BooleanField(default=False)
 
     def __str__(self):
         return f"""ID:{self.id}-COMPETITION ID:{self.competition.id}-
@@ -171,14 +165,6 @@ class Grade(models.Model):
         constraints = [
             models.UniqueConstraint(fields=['judge','appearance'], name='unique_judge_appearance')
         ]
-
-    def appearance_id(self):
-        return self.appearance.id
-    appearance_id.short_description = 'Appearance ID'
-
-    def competition_id(self):
-        return self.appearance.competition.id
-    competition_id.short_description = 'Competition ID'
 
     def __str__(self):
         return f"""{self.judge.username}->{self.appearance.id}:{self.grade}
