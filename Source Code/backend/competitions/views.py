@@ -1,15 +1,20 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden, HttpResponse, JsonResponse
 from .models import Competition, Appearance, Grade, Competition_Judge, Status_choices
-from .utils import generate_starting_list_pdf
+from .utils import generate_starting_list_pdf, generate_results, generate_grades
 from users.models import User, Role
 from users.decorators import role_required
 from django.views.decorators.csrf import csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!
 
 
-def competition_list(request):
-    competitions = Competition.objects.all()
-    return HttpResponse(competitions)
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+def competition_live(request):
+    if Competition.objects.filter(status=Status_choices.ACTIVE):
+        return HttpResponse(Competition.objects.filter(status=Status_choices.ACTIVE))
+
+    else:
+        return HttpResponse("Nema natjecanja.")
+
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
 @role_required(Role.ORGANIZER)
@@ -28,6 +33,7 @@ def competition_create(request):
     return HttpResponse("Stvori natjecanje.html")
 
 
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
 def competition_detail(request, id):
     competition = get_object_or_404(Competition, id=id)
     appearances = Appearance.objects.get(competition=competition)
@@ -115,9 +121,6 @@ def competition_starting_list(request, id):
     )
     allowed_users.update(judges)
 
-    print(allowed_users)
-    print(request.user.id)
-
     if request.user.id not in allowed_users:
         return HttpResponseForbidden("Pristup zabranjen.")
 
@@ -165,7 +168,7 @@ def competition_activate(request, id):
             return HttpResponseForbidden("Nema sudaca.")
         if Competition_Judge.objects.filter(competition=competition).count() / 2 == 1:
             return HttpResponseForbidden("Broj sudaca je paran.")
-        competition.status = 'active'
+        competition.status = Status_choices.ACTIVE
         competition.save()
         return HttpResponse(competition)
 
@@ -181,7 +184,7 @@ def competition_deactivate(request, id):
         return HttpResponseForbidden("Pristup zabranjen.")
 
     if request.method == 'POST':
-        competition.status = 'published'
+        competition.status = Status_choices.PUBLISHED
         competition.save()
         return HttpResponse(competition)
 
@@ -212,6 +215,51 @@ def competition_grade(request, competition_id, appearance_id):
         return HttpResponse(grade)
     
     return HttpResponse("Ocijeni.html")
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+@role_required(Role.ORGANIZER)
+def competition_complete(request, id):
+    competition = get_object_or_404(Competition, id=id)
+
+    if competition.organizer != request.user:
+        return HttpResponseForbidden("Pristup zabranjen.")
+
+    if request.method == 'POST':
+        competition.status = Status_choices.COMPLETED
+        competition.save()
+        return HttpResponse(competition)
+
+    return HttpResponse("Završi.html")
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+def competition_results(request, id):
+    competition = get_object_or_404(Competition, id=id)
+    if competition.status != Status_choices.COMPLETED:
+        return HttpResponseForbidden("Natjecanje nije gotovo.")
+    
+    results = generate_results(competition)
+
+    return JsonResponse(results)
+
+
+@csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
+#@role_required(Role.CLUB_MANAGER)
+def competition_appearance_results(request, competition_id, appearance_id):
+    competition = get_object_or_404(Competition, id=competition_id)
+    if competition.status != Status_choices.COMPLETED:
+        return HttpResponseForbidden("Natjecanje nije gotovo.")
+    
+    appearance = get_object_or_404(Appearance, id=appearance_id)
+    
+    #if appearance.club_manager != request.user:
+    #    return HttpResponseForbidden("Pristup zabranjen")
+    
+    grades = generate_grades(appearance)
+
+    return JsonResponse(grades)
+
 
 @csrf_exempt #FOR POSTMAN !!!!!!!!!!!!!!!!!!
 @role_required(Role.CLUB_MANAGER)
