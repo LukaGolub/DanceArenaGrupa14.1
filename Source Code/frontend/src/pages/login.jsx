@@ -1,6 +1,6 @@
 import '../styles/login.css';
 
-function Login() {
+function Login({ setPage }) {
     return (
         <div className="login-container">
             <img src="/pictures/login pozadina.jpg" alt="Login Pozadina" className="login-pozadina" />
@@ -13,7 +13,7 @@ function Login() {
                         <p>Login with Google</p>
                     </div>
                     <p>Don't want to login? Head to the homepage to see the results from your favourite dancers!</p>
-                    <div className="homepage-button">
+                    <div className="homepage-button" onClick={() => setPage('homepage')}>
                         <p>Homepage</p>
                     </div>
                 </div>

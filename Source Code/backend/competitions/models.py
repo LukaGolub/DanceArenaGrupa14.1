@@ -3,34 +3,34 @@ from multiselectfield import MultiSelectField
 from django.conf import settings
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-AGE_CHOICES = [
-    ('DJECA', 'Djeca'),
-    ('JUNIORI', 'Juniori'),
-    ('SENIORI', 'Seniori'),
-]
 
-STYLE_CHOICES = [
-    ('BALET', 'Balet'),
-    ('HIPHOP', 'Hip Hop'),
-    ('JAZZ', 'Jazz'),
-    ('STEP', 'Step'),
-    ('BREAK', 'Break'),
-]
+class Age_choices(models.TextChoices):
+    DJECA = "DJECA", "Djeca"
+    JUNIORI = "JUNIORI", "Juniori"
+    SENIORI = "SENIORI", "Seniori"
 
-GROUP_SIZE_CHOICES = [
-    ('SOLO', 'Solo'),
-    ('DUO', 'Duo'),
-    ('MALA_GRUPA', 'Mala grupa'),
-    ('FORMACIJA', 'Formacija'),
-]
 
-STATUS_CHOICES = [
-    ('DRAFT', 'Draft'),
-    ('PUBLISHED', 'Published'),
-    ('CLOSED_APPLICATIONS', 'Closed_applications'),
-    ('ACTIVE', 'Active'),
-    ('COMPLETED', 'Completed')
-]
+class Style_choices(models.TextChoices):
+    BALET = "BALET", "Balet"
+    HIPHOP = "HIPHOP", "Hip Hop"
+    JAZZ = "JAZZ", "Jazz"
+    STEP = "STEP", "Step"
+    BREAK = "BREAK", "Break"
+
+
+class Group_size_choices(models.TextChoices):
+    SOLO = "SOLO", "Solo"
+    DUO = "DUO", "Duo"
+    MALA_GRUPA = "MALA_GRUPA", "Mala grupa"
+    FORMACIJA = "FORMACIJA", "Formacija"
+
+
+class Status_choices(models.TextChoices):
+    DRAFT = "DRAFT", "Draft"
+    PUBLISHED = "PUBLISHED", "Published"
+    CLOSED_APPLICATIONS = "CLOSED_APPLICATIONS", "Closed applications"
+    ACTIVE = "ACTIVE", "Active"
+    COMPLETED = "COMPLETED", "Completed"
 
 
 class Competition(models.Model):
@@ -41,28 +41,33 @@ class Competition(models.Model):
         settings.AUTH_USER_MODEL,
         limit_choices_to={'role': 'ORGANIZER'},
         on_delete=models.CASCADE,
-        related_name='competitions',
-        null=True
+        related_name='competitions'
     )
     age_categories = MultiSelectField(
-        choices=AGE_CHOICES,
+        choices=Age_choices,
         max_choices=3,
         max_length=50,
-        default=['DJECA']
+        default=Age_choices.DJECA
     )
     style_categories = MultiSelectField(
-        choices=STYLE_CHOICES,
+        choices=Style_choices,
         max_choices=5,
         max_length=50,
-        default=['BALET']
+        default=Style_choices.BALET
     )
     group_size_categories = MultiSelectField(
-        choices=GROUP_SIZE_CHOICES,
+        choices=Group_size_choices,
         max_choices=4,
         max_length=50,
-        default=['SOLO']
+        default=Group_size_choices.SOLO
     )
-    status = models.CharField(max_length=10, default='draft')
+    status = models.CharField(choices=Status_choices, max_length=20, default=Status_choices.DRAFT)
+    starting_list_pdf = models.FileField(
+        upload_to='starting_lists/',
+        blank=True,
+        null=True
+    )
+    registration_fee = models.DecimalField(decimal_places=2, max_digits=6, default=0)
 
     def __str__(self):
         return f"""ID:{self.id}-ORGANIZER:{self.organizer}-  
@@ -88,12 +93,8 @@ class Competition_Judge(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['judge', 'competition'], name='unique_judge_competition')
+            models.UniqueConstraint(fields=['judge','competition'], name='unique_judge_competition')
         ]
-
-    def competition_id(self):
-        return self.competition.id
-    competition_id.short_description = 'Competition ID'
 
     def __str__(self):
         return f"""{self.judge.username}->{self.competition}
@@ -108,41 +109,38 @@ class Appearance(models.Model):
     )
     club_manager = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        limit_choices_to={'role': 'CLUB_MANAGER'},
+        limit_choices_to={'role': 'CLUB MANAGER'},
         on_delete=models.CASCADE,
         related_name='appearances',
         null=True
     )
     choreography = models.CharField(max_length=50)
-    length = models.TimeField()
+    length = models.DurationField()
     choreograph = models.CharField(max_length=50)
-    music = models.FileField()
+    music = models.FileField(null=True, blank=True)
     age_category = models.CharField(
         max_length=50,
-        choices=AGE_CHOICES,
-        default='DJECA',
+        choices=Age_choices,
+        default=Age_choices.DJECA
     )
     style_category = models.CharField(
         max_length=50,
-        choices=STYLE_CHOICES,
-        default='BALET'
+        choices=Style_choices,
+        default=Style_choices.BALET
     )
     group_size_category = models.CharField(
         max_length=50,
-        choices=GROUP_SIZE_CHOICES,
-        default='SOLO'
+        choices=Group_size_choices,
+        default=Group_size_choices.SOLO
     )
-
-    def competition_id(self):
-        return self.competition.id
-    competition_id.short_description = 'Competition ID'
+    paid_registration = models.BooleanField(default=False)
 
     def __str__(self):
         return f"""ID:{self.id}-COMPETITION ID:{self.competition.id}-
                 CLUB MANAGER:{self.club_manager}-
                 AGE CATEGORY:{self.age_category}-
                 STYLE CATEGORY:{self.style_category}-
-                GROUP SIZE CATEGORy:{self.group_size_category}
+                GROUP SIZE CATEGORY:{self.group_size_category}
                 ====================
                 """
 
@@ -165,16 +163,8 @@ class Grade(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=['judge', 'appearance'], name='unique_judge_appearance')
+            models.UniqueConstraint(fields=['judge','appearance'], name='unique_judge_appearance')
         ]
-
-    def appearance_id(self):
-        return self.appearance.id
-    appearance_id.short_description = 'Appearance ID'
-
-    def competition_id(self):
-        return self.appearance.competition.id
-    competition_id.short_description = 'Competition ID'
 
     def __str__(self):
         return f"""{self.judge.username}->{self.appearance.id}:{self.grade}
