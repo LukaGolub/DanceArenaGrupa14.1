@@ -8,10 +8,14 @@ function Login({ setPage }) {
                 <img src="/pictures/logo i tekst.png" alt="Dance Arena Logo With Title" className="login-logo-tekst" />
                 <div className="form-container">
                     <p>Nice to see you again!</p>
-                    <div className="google-login">
-                        <img src="/pictures/Google logo.png" alt="Google Logo" className="google-logo" />
-                        <p>Login with Google</p>
-                    </div>
+
+                    <a href="http://localhost:8000/users/auth/login/google-oauth2/" className="google-login-anchor">
+                        <div className="google-login">
+                            <img src="/pictures/Google logo.png" alt="Google Logo" className="google-logo" />
+                            <p>Login with Google</p>
+                        </div>
+                    </a>
+
                     <p>Don't want to login? Head to the homepage to see the results from your favourite dancers!</p>
                     <div className="homepage-button" onClick={() => setPage('homepage')}>
                         <p>Homepage</p>

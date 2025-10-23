@@ -130,3 +130,9 @@
     text-decoration: none;
     color: inherit;
 }
+
+.google-login-anchor {
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+}
