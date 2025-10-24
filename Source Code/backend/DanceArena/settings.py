@@ -70,8 +70,9 @@ AUTHENTICATION_BACKENDS = [
 ]
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = ''
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'CLIENT_SECRET_HERE'
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
+CORS_ALLOW_CREDENTIALS = True
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
     'social_core.pipeline.social_auth.social_uid',
@@ -164,7 +165,7 @@ SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
             'client_id': '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com ',
-            'secret': '',
+            'secret': 'CLIENT_SECRET_HERE',
             'key': '',
         }
     }
