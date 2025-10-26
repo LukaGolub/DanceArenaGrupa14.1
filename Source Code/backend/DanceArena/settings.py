@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,10 +24,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*o@f+a$^4e7i8wxo6=u(%yc*a-8y!mdqg34j@iq(ww$c9@zbkt'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = []
 
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
+    'multiselectfield',
 ]
 
 MIDDLEWARE = [
@@ -69,8 +71,8 @@ AUTHENTICATION_BACKENDS = [
     'social_core.backends.google.GoogleOAuth2',
 ]
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = 'CLIENT_SECRET_HERE'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY')
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET')
 SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = ['email', 'profile']
 CORS_ALLOW_CREDENTIALS = True
 SOCIAL_AUTH_PIPELINE = (
@@ -85,7 +87,7 @@ SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.load_extra_data',
     'social_core.pipeline.user.user_details',
 )
-LOGIN_REDIRECT_URL = '/users/google-login/'
+LOGIN_REDIRECT_URL = config('FRONTEND_URL') + '/dashboard'
 
 ROOT_URLCONF = 'DanceArena.urls'
 
@@ -164,8 +166,8 @@ AUTH_USER_MODEL = 'users.User'
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
         'APP': {
-            'client_id': '787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com ',
-            'secret': 'CLIENT_SECRET_HERE',
+            'client_id': config('SOCIAL_AUTH_GOOGLE_OAUTH2_KEY'),
+            'secret': config('SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET'),
             'key': '',
         }
     }

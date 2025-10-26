@@ -1,11 +1,11 @@
 import '../styles/homepage.css';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/navbar.jsx';
 
-function homepage({ setPage }) {
+function Homepage() {
     return (
         <div className="homepage-container">
-            <Navbar
-                setPage={setPage} />
+            <Navbar />
             <div className="homepage-content-container">
                 <p>Uspješno ulogirani!</p>
                 <p>Dobrodošao Taj i taj (taj.taj@gmail.com)!</p>
@@ -15,4 +15,4 @@ function homepage({ setPage }) {
     )
 };
 
-export default homepage;
+export default Homepage;
