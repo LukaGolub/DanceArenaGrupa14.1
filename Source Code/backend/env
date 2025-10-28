@@ -1,0 +1,11 @@
+SECRET_KEY='django-insecure-*o@f+a$^4e7i8wxo6=u(%yc*a-8y!mdqg34j@iq(ww$c9@zbkt'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY='787949986823-lr02rkl4hida1inqimp51faf9h3uapc2.apps.googleusercontent.com'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET='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'
+
+DEBUG=True
+
+DATABASE_NAME=db.sqlite3
+DATABASE_ENGINE=django.db.backends.sqlite3
+# DATABASE_HOST=localhost
+# DATABASE_USER=admin
+# DATABASE_PASSWORD=secret
